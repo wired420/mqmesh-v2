@@ -97,6 +97,7 @@ return [
         ['code' => 'ls', 'name' => "Laurion's Song", 'year' => 2023],
         ['code' => 'tob', 'name' => 'The Outer Brood', 'year' => 2024],
         ['code' => 'sor', 'name' => 'Shattering of Ro', 'year' => 2025],
+        ['code' => 'fof', 'name' => 'Favors of Fortune', 'year' => 2026],
         ['code' => 'other', 'name' => 'Other', 'year' => null],
     ],
 
