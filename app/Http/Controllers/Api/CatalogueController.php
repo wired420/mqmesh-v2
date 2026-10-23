@@ -26,12 +26,13 @@ class CatalogueController extends Controller
 
         $withCommunity = $request->query('include') === 'community';
 
-        $latest = FileVersion::where('is_official', true)->max('updated_at');
-        $tag = $latest.'|'.FileVersion::where('is_official', true)->count().'|'.$request->query('since');
+        // The ETag follows which files are listed (by id) and when zones last
+        // changed, never download counts, so it only moves when the content does.
+        $tag = $this->idSet(FileVersion::where('is_official', true))
+            .'|'.Zone::max('updated_at').'|'.$request->query('since');
 
         if ($withCommunity) {
-            $community = $this->communityQuery(FileVersion::query());
-            $tag .= '|community|'.(clone $community)->max('updated_at').'|'.$community->count();
+            $tag .= '|community|'.$this->idSet($this->communityQuery(FileVersion::query()));
         }
 
         $etag = '"'.md5($tag).'"';
@@ -55,6 +56,16 @@ class CatalogueController extends Controller
                 ? [...$this->zoneSummary($zone), 'community' => $this->communitySummaries($zone->communityVersions)]
                 : $this->zoneSummary($zone)),
         ])->setEtag(trim($etag, '"'));
+    }
+
+    /**
+     * A short fingerprint of which file versions a query matches.
+     */
+    private function idSet($query): string
+    {
+        $row = $query->toBase()->selectRaw('count(*) as n, coalesce(sum(id), 0) as s, coalesce(max(id), 0) as m')->first();
+
+        return "{$row->n}:{$row->s}:{$row->m}";
     }
 
     /**

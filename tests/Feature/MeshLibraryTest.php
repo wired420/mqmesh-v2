@@ -150,6 +150,10 @@ class MeshLibraryTest extends TestCase
         $response = $this->getJson('/api/v1/manifest')->assertOk()->assertJsonPath('zones.0.short_name', 'poknowledge');
         $this->getJson('/api/v1/manifest', ['If-None-Match' => $response->headers->get('ETag')])->assertStatus(304);
 
+        // Downloads don't change the manifest, so they must not change its ETag.
+        $this->get(route('files.download', $zone->siteMesh))->assertOk();
+        $this->getJson('/api/v1/manifest')->assertHeader('ETag', $response->headers->get('ETag'));
+
         // ?include=community adds approved community versions and changes the ETag;
         // the plain manifest stays exactly as it was.
         $community = app(FileLibrary::class)->store($zone, 'mesh', $this->meshFile('shared'), ['source' => 'upload', 'status' => 'approved', 'user' => User::factory()->create(['name' => 'Kaen'])]);

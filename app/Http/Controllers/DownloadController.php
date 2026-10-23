@@ -25,7 +25,8 @@ class DownloadController extends Controller
     {
         abort_unless($file->isVisibleTo($request->user()), 404);
 
-        $file->increment('download_count');
+        // Counting a download is not an edit, so leave updated_at alone.
+        FileVersion::whereKey($file->id)->toBase()->increment('download_count');
 
         return response()->download($this->library->absolutePath($file), $file->downloadName(), [
             'Content-Type' => $file->type === 'doors' ? 'application/json' : 'application/octet-stream',
@@ -70,7 +71,7 @@ class DownloadController extends Controller
 
         abort_if($files->isEmpty(), 404, 'None of those zones have files yet.');
 
-        FileVersion::whereKey($files->modelKeys())->increment('download_count');
+        FileVersion::whereKey($files->modelKeys())->toBase()->increment('download_count');
 
         $name = $this->zipName($request, $files->count());
 
