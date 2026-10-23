@@ -112,4 +112,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification
+    |--------------------------------------------------------------------------
+    |
+    | Verification links work for one hour. After that, the user asks for a new
+    | one (at most every 15 minutes, see User::VERIFICATION_EMAIL_INTERVAL).
+    |
+    */
+
+    'verification' => [
+        'expire' => 60,
+    ],
+
 ];

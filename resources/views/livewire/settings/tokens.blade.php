@@ -11,6 +11,14 @@ new class extends Component {
 
     public ?string $plainToken = null;
 
+    /**
+     * Tokens can upload, so they need a confirmed email too.
+     */
+    public function boot(): void
+    {
+        abort_unless(Auth::user()?->hasVerifiedEmail(), 403);
+    }
+
     #[Computed]
     public function tokens()
     {

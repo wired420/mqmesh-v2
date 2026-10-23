@@ -2,16 +2,23 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable // implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail
 {
+    /**
+     * Minimum time between verification emails to one account, in seconds.
+     */
+    public const VERIFICATION_EMAIL_INTERVAL = 900;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -52,6 +59,42 @@ class User extends Authenticatable // implements MustVerifyEmail
             'password' => 'hashed',
             'is_trusted' => 'boolean',
         ];
+    }
+
+    /**
+     * Send the verification link, at most once every 15 minutes.
+     *
+     * Returns 0 when it was sent, or the seconds left before another is allowed.
+     */
+    public function sendVerificationEmailThrottled(): int
+    {
+        $key = 'verify-email:'.$this->getKey();
+
+        if (RateLimiter::tooManyAttempts($key, 1)) {
+            return RateLimiter::availableIn($key);
+        }
+
+        RateLimiter::hit($key, self::VERIFICATION_EMAIL_INTERVAL);
+        $this->notify(new VerifyEmail);
+
+        return 0;
+    }
+
+    /**
+     * Laravel calls this on sign-up; it goes through the same throttle.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->sendVerificationEmailThrottled();
+    }
+
+    /**
+     * Until the address is confirmed, the verification link is the only email
+     * this site will send to it. Returning null tells Laravel not to send.
+     */
+    public function routeNotificationForMail(mixed $notification): ?string
+    {
+        return $this->hasVerifiedEmail() || $notification instanceof VerifyEmail ? $this->email : null;
     }
 
     /**

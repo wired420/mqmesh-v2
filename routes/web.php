@@ -24,7 +24,8 @@ Route::view('about', 'about')->name('about');
 Route::view('api-docs', 'api-docs')->name('api.docs');
 
 Route::middleware(['auth'])->group(function () {
-    Volt::route('upload', 'uploads.create')->name('uploads.create');
+    // Uploading (and API tokens, which can upload) needs a confirmed email.
+    Volt::route('upload', 'uploads.create')->middleware('verified')->name('uploads.create');
     Volt::route('my/uploads', 'uploads.mine')->name('dashboard');
 
     Route::redirect('settings', 'settings/profile');
@@ -32,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-    Volt::route('settings/tokens', 'settings.tokens')->name('settings.tokens');
+    Volt::route('settings/tokens', 'settings.tokens')->middleware('verified')->name('settings.tokens');
 
     Volt::route('moderation', 'moderation')->middleware('can:moderate')->name('moderation');
     Volt::route('admin/users', 'admin.users')->middleware('can:admin')->name('admin.users');

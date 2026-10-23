@@ -14,6 +14,6 @@ Route::prefix('v1')->name('api.')->group(function () {
     Route::get('zip', [DownloadController::class, 'zip'])->middleware('throttle:zips')->name('zip');
 
     Route::post('zones/{zone}/versions', [UploadController::class, 'store'])
-        ->middleware(['auth:sanctum', 'abilities:upload', 'throttle:uploads'])
+        ->middleware(['auth:sanctum', 'verified', 'abilities:upload', 'throttle:uploads'])
         ->name('versions.store');
 });

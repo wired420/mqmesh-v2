@@ -27,6 +27,14 @@ new #[Title('Upload')] class extends Component {
 
     public string $notes = '';
 
+    /**
+     * Runs on every request, including the upload itself.
+     */
+    public function boot(): void
+    {
+        abort_unless(Auth::user()?->hasVerifiedEmail(), 403, 'Confirm your email address before uploading.');
+    }
+
     public function mount(): void
     {
         if (! in_array($this->type, ['mesh', 'doors'], true)) {
