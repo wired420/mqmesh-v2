@@ -114,14 +114,6 @@ new #[Title('Zones')] class extends Component {
         return Expansion::withCount('zones')->orderBy('sort_order')->get();
     }
 
-    /**
-     * Total size of every Site mesh and doors file, for the "download all" button.
-     */
-    public function everythingSize(): int
-    {
-        return (int) \App\Models\FileVersion::where('is_official', true)->sum('size');
-    }
-
     public function filtering(): bool
     {
         return $this->q !== '' || $this->exp || $this->doors || $this->community || $this->updated !== '';
@@ -148,12 +140,8 @@ new #[Title('Zones')] class extends Component {
             </flux:subheading>
         </div>
 
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
             <flux:switch wire:model.live="withDoors" label="Include doors files" align="left" />
-            <flux:button variant="primary" icon="archive-box-arrow-down" :href="route('downloads.zip', ['with' => 'doors'])">
-                Download all meshes and doors
-                <span class="ml-1 text-xs font-normal opacity-80">({{ \App\Support\Bytes::format($this->everythingSize()) }})</span>
-            </flux:button>
         </div>
     </div>
 
@@ -224,7 +212,7 @@ new #[Title('Zones')] class extends Component {
             @if ($selected)
                 <flux:button size="sm" variant="primary" icon="arrow-down-tray" :href="$this->selectedZipUrl()">Download {{ count($selected) }} as zip</flux:button>
             @endif
-            <flux:button size="sm" icon="archive-box-arrow-down" :href="$this->matchingZipUrl()">
+            <flux:button size="sm" icon="archive-box-arrow-down" :href="$this->matchingZipUrl()" class="!text-accent-content [&_svg]:!text-accent-content">
                 Download all {{ number_format($this->zones->total()) }} {{ $this->filtering() ? 'matching' : '' }}
             </flux:button>
         </div>
