@@ -91,7 +91,7 @@ class ZoneFilters
             'year' => now()->subYear(),
             default => null,
         }) {
-            $query->where('updated_at', '>=', $since);
+            $query->where('updated_at', '>=', $since)->whereHas('siteMesh');
         }
 
         $direction = $this->direction === 'desc' ? 'desc' : 'asc';

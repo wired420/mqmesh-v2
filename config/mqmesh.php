@@ -16,6 +16,7 @@ return [
     'depot' => [
         'url' => env('MQMESH_DEPOT_URL', 'https://gitlab.com/wired420/mqmesh-depot.git'),
         'path' => env('MQMESH_DEPOT_PATH', storage_path('app/depot')),
+        'webhook_secret' => env('MQMESH_WEBHOOK_SECRET', ''),
     ],
 
     /*

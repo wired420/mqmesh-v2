@@ -8,6 +8,7 @@ use App\Services\LegacyFeeds;
 use App\Services\SiteFileImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
 
 class SyncDepot extends Command
@@ -17,6 +18,24 @@ class SyncDepot extends Command
     protected $description = 'Pull mqmesh-depot (read only) and make any changed meshes the new Site files';
 
     public function handle(SiteFileImporter $importer, LegacyFeeds $feeds): int
+    {
+        // One sync at a time, whether the webhook, the schedule or a person started it.
+        $lock = Cache::lock('mqmesh-depot-sync', 3600);
+
+        if (! $lock->get()) {
+            $this->warn('A depot sync is already running.');
+
+            return self::SUCCESS;
+        }
+
+        try {
+            return $this->sync($importer, $feeds);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function sync(SiteFileImporter $importer, LegacyFeeds $feeds): int
     {
         $path = config('mqmesh.depot.path');
 

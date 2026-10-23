@@ -40,7 +40,7 @@ new class extends Component {
             ->withCount(['reports' => fn ($q) => $q->open()])
             ->siteFirst()
             ->get()
-            ->filter(fn (FileVersion $file) => $file->isVisibleTo($user) || $file->status === FileVersion::STATUS_SUPERSEDED)
+            ->filter(fn (FileVersion $file) => $file->isVisibleTo($user))
             ->groupBy('type');
     }
 

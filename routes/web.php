@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DepotWebhookController;
 use App\Http\Controllers\DownloadController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -14,6 +15,10 @@ Route::get('download/zip', [DownloadController::class, 'zip'])->middleware('thro
 // The old site's file paths, still used by the existing updaters' feeds.
 Route::get('resources/meshes/{name}.navmesh', [DownloadController::class, 'legacy'])->defaults('type', 'mesh')->where('name', '[A-Za-z0-9_-]+');
 Route::get('resources/doors/{name}_doors.json', [DownloadController::class, 'legacy'])->defaults('type', 'doors')->where('name', '[A-Za-z0-9_-]+');
+
+Route::post('hooks/gitlab', DepotWebhookController::class)
+    ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+    ->middleware('throttle:30,1');
 
 Route::view('about', 'about')->name('about');
 Route::view('api-docs', 'api-docs')->name('api.docs');

@@ -114,7 +114,8 @@ class FileVersion extends Model
      */
     public function isPublic(): bool
     {
-        return $this->is_official || $this->status === self::STATUS_APPROVED;
+        // Retired Site files stay downloadable from the zone's history.
+        return $this->is_official || in_array($this->status, [self::STATUS_APPROVED, self::STATUS_SUPERSEDED], true);
     }
 
     /**

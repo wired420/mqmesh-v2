@@ -62,6 +62,8 @@ class MeshLibraryTest extends TestCase
         $this->assertSame(1, $zone->versions()->where('is_official', true)->count());
         $this->assertSame('superseded', $zone->versions()->where('version', 1)->value('status'));
         $this->assertSame('approved', $community->fresh()->status);
+
+        $this->get(route('files.download', $zone->versions()->where('version', 1)->sole()))->assertOk();
     }
 
     public function test_upload_waits_for_review_and_rejects_bad_or_duplicate_files(): void
@@ -160,6 +162,17 @@ class MeshLibraryTest extends TestCase
         ], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('status', 'pending');
 
         $this->assertSame(2, $zone->versions()->count());
+    }
+
+    public function test_gitlab_webhook_needs_the_secret(): void
+    {
+        config(['mqmesh.depot.webhook_secret' => 'right-secret']);
+        \Illuminate\Support\Facades\Artisan::partialMock()->shouldReceive('call')->with('mqmesh:sync-depot')->once();
+
+        $this->postJson('/hooks/gitlab', [], ['X-Gitlab-Event' => 'Push Hook'])->assertForbidden();
+        $this->postJson('/hooks/gitlab', [], ['X-Gitlab-Event' => 'Push Hook', 'X-Gitlab-Token' => 'wrong'])->assertForbidden();
+        $this->postJson('/hooks/gitlab', [], ['X-Gitlab-Event' => 'Tag Push Hook', 'X-Gitlab-Token' => 'right-secret'])->assertOk();
+        $this->postJson('/hooks/gitlab', [], ['X-Gitlab-Event' => 'Push Hook', 'X-Gitlab-Token' => 'right-secret'])->assertStatus(202);
     }
 
     public function test_zip_contains_site_files_under_their_mq2nav_names(): void

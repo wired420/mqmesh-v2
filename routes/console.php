@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Schedule;
 
-// Pick up new and changed meshes from mqmesh-depot. The old site's cron also
-// pulls the depot every 12 hours; this runs on its own clone, read only.
+// The GitLab webhook (/hooks/gitlab) syncs the depot on every push. This daily
+// run is only a safety net in case a webhook call is missed. It works on its
+// own clone, read only.
 Schedule::command('mqmesh:sync-depot')
-    ->twiceDaily(4, 16)
-    ->withoutOverlapping()
+    ->dailyAt('04:00')
+    ->withoutOverlapping(30)
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/depot-sync.log'));
