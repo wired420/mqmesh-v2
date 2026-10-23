@@ -32,6 +32,17 @@ new #[Title('Updater')] class extends Component {
         </flux:subheading>
     </div>
 
+    <figure class="overflow-hidden rounded-xl border border-zinc-200 shadow-sm dark:border-zinc-800">
+        <a href="{{ asset('images/updater-windows.png') }}" target="_blank" rel="noopener" title="Open full size">
+            <img src="{{ asset('images/updater-windows.png') }}" width="1086" height="753" loading="lazy"
+                alt="The MQMesh Updater on Windows: zones grouped by expansion with search, status, size, a mesh choice per zone and a doors checkbox"
+                class="block h-auto w-full" />
+        </a>
+        <figcaption class="border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800">
+            The Windows version. Zones are grouped by expansion; pick the Site mesh, a community version or "don't manage" for each one.
+        </figcaption>
+    </figure>
+
     @if ($this->releases->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500 dark:border-zinc-700">
             No builds are up yet. Check back soon.
