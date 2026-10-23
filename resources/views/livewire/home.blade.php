@@ -102,6 +102,7 @@ new class extends Component {
 
             <div class="mt-6 flex flex-wrap justify-center gap-3">
                 <flux:button variant="primary" icon="map" :href="route('zones.index')" wire:navigate>Browse all zones</flux:button>
+                <flux:button icon="arrow-path" :href="route('updater')" wire:navigate>Get the updater</flux:button>
                 <flux:button icon="arrow-up-tray" :href="route('uploads.create')" wire:navigate>Share a mesh</flux:button>
             </div>
         </div>

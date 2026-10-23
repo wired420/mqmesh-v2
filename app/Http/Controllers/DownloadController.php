@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FileVersion;
 use App\Models\Zone;
 use App\Services\FileLibrary;
+use App\Support\UpdaterReleases;
 use App\Support\ZoneFilters;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -32,6 +33,16 @@ class DownloadController extends Controller
             'Content-Type' => $file->type === 'doors' ? 'application/json' : 'application/octet-stream',
             'ETag' => '"'.$file->md5.'"',
         ]);
+    }
+
+    /**
+     * Download a build of the MQMesh Updater listed on the Updater page.
+     */
+    public function updater(string $file): BinaryFileResponse
+    {
+        abort_unless(UpdaterReleases::isOffered($file), 404);
+
+        return response()->download(UpdaterReleases::directory().'/'.$file, $file);
     }
 
     /**

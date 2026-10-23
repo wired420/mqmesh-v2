@@ -21,6 +21,7 @@
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="map" :href="route('zones.index')" :current="request()->routeIs('zones.*')" wire:navigate>Zones</flux:navbar.item>
                 <flux:navbar.item icon="arrow-up-tray" :href="route('uploads.create')" :current="request()->routeIs('uploads.create')" wire:navigate>Upload</flux:navbar.item>
+                <flux:navbar.item icon="arrow-path" :href="route('updater')" :current="request()->routeIs('updater')" wire:navigate>Updater</flux:navbar.item>
                 <flux:navbar.item icon="code-bracket" :href="route('api.docs')" :current="request()->routeIs('api.docs')" wire:navigate>API</flux:navbar.item>
                 <flux:navbar.item icon="information-circle" :href="route('about')" :current="request()->routeIs('about')" wire:navigate>About</flux:navbar.item>
             </flux:navbar>
@@ -104,6 +105,7 @@
                 <flux:navlist.item icon="home" :href="route('home')" :current="request()->routeIs('home')" wire:navigate>Home</flux:navlist.item>
                 <flux:navlist.item icon="map" :href="route('zones.index')" :current="request()->routeIs('zones.*')" wire:navigate>Zones</flux:navlist.item>
                 <flux:navlist.item icon="arrow-up-tray" :href="route('uploads.create')" wire:navigate>Upload</flux:navlist.item>
+                <flux:navlist.item icon="arrow-path" :href="route('updater')" wire:navigate>Updater</flux:navlist.item>
                 <flux:navlist.item icon="code-bracket" :href="route('api.docs')" wire:navigate>API</flux:navlist.item>
                 <flux:navlist.item icon="information-circle" :href="route('about')" wire:navigate>About</flux:navlist.item>
             </flux:navlist>
