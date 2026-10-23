@@ -164,6 +164,26 @@ class MeshLibraryTest extends TestCase
         $this->assertSame(2, $zone->versions()->count());
     }
 
+    public function test_moderators_are_emailed_about_pending_uploads(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+        $zone = $this->zoneWithSiteMesh();
+
+        $moderator = User::factory()->create();
+        $moderator->forceFill(['role' => 'moderator'])->save();
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => 'admin'])->save();
+        $uploader = User::factory()->create();
+
+        app(FileLibrary::class)->store($zone, 'mesh', $this->meshFile('pending'), ['source' => 'upload', 'user' => $uploader]);
+        app(FileLibrary::class)->store($zone, 'mesh', $this->meshFile('trusted'), ['source' => 'upload', 'status' => 'approved', 'user' => $uploader]);
+        $this->app->terminate();
+
+        \Illuminate\Support\Facades\Notification::assertSentTo([$moderator, $admin], \App\Notifications\UploadAwaitingReview::class);
+        \Illuminate\Support\Facades\Notification::assertSentTimes(\App\Notifications\UploadAwaitingReview::class, 2);
+        \Illuminate\Support\Facades\Notification::assertNotSentTo($uploader, \App\Notifications\UploadAwaitingReview::class);
+    }
+
     public function test_gitlab_webhook_needs_the_secret(): void
     {
         config(['mqmesh.depot.webhook_secret' => 'right-secret']);

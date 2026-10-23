@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\FileVersion;
 use App\Models\User;
 use App\Models\Zone;
+use App\Notifications\UploadAwaitingReview;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 
@@ -81,7 +83,7 @@ class FileLibrary
             fclose($stream);
         }
 
-        return DB::transaction(function () use ($zone, $type, $path, $attributes, $sha256, $storedPath) {
+        $file = DB::transaction(function () use ($zone, $type, $path, $attributes, $sha256, $storedPath) {
             $version = FileVersion::where('zone_id', $zone->id)->where('type', $type)->lockForUpdate()->max('version') ?? 0;
 
             $file = FileVersion::create([
@@ -111,6 +113,27 @@ class FileLibrary
 
             return $file;
         });
+
+        if ($file->status === FileVersion::STATUS_PENDING) {
+            $this->notifyModerators($file);
+        }
+
+        return $file;
+    }
+
+    /**
+     * Email every moderator and admin about a new upload waiting for review.
+     * Sent after the response so a slow mail server never holds up the upload.
+     */
+    private function notifyModerators(FileVersion $file): void
+    {
+        dispatch(function () use ($file) {
+            $moderators = User::whereIn('role', [User::ROLE_MODERATOR, User::ROLE_ADMIN])
+                ->whereKeyNot($file->user_id)
+                ->get();
+
+            Notification::send($moderators, new UploadAwaitingReview($file));
+        })->afterResponse();
     }
 
     /**
