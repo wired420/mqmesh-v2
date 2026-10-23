@@ -7,6 +7,7 @@ use App\Services\FileLibrary;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
@@ -58,6 +59,14 @@ new class extends Component {
         $this->validate(['reportReason' => ['required', 'string', 'min:10', 'max:2000']], [], ['reportReason' => 'reason']);
 
         $file = $this->zone->versions()->findOrFail($this->reportingId);
+
+        if (RateLimiter::tooManyAttempts('report:'.Auth::id(), 10)) {
+            $this->addError('reportReason', 'You have sent a lot of reports in the last hour. Please try again later.');
+
+            return;
+        }
+
+        RateLimiter::hit('report:'.Auth::id(), 3600);
 
         Report::create(['file_version_id' => $file->id, 'user_id' => Auth::id(), 'reason' => $this->reportReason]);
 

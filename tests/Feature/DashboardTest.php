@@ -36,4 +36,13 @@ class DashboardTest extends TestCase
             $this->get($url)->assertOk();
         }
     }
+
+    public function test_responses_carry_security_headers_and_the_api_is_rate_limited(): void
+    {
+        $this->get('/about')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+
+        $this->getJson('/api/v1/expansions')->assertOk()->assertHeader('X-RateLimit-Limit', '60');
+    }
 }

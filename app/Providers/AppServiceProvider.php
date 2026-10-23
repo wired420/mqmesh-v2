@@ -27,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('moderate', fn (User $user) => $user->canModerate());
         Gate::define('admin', fn (User $user) => $user->isAdmin());
 
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
+
         // Zips are built on the fly and can be gigabytes, so keep them sane.
         RateLimiter::for('zips', fn (Request $request) => Limit::perMinute(6)->by($request->user()?->id ?: $request->ip()));
 

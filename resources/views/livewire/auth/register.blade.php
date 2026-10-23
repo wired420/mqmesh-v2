@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -20,11 +21,23 @@ new #[Layout('components.layouts.auth')] class extends Component {
      */
     public function register(): void
     {
+        // Every sign-up emails the address given, so cap sign-ups per IP to
+        // stop anyone using the form to send mail to strangers.
+        $key = 'register:'.request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $this->addError('email', 'Too many sign-ups from your network. Please try again in an hour.');
+
+            return;
+        }
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'confirmed', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ], ['email.confirmed' => 'The two email addresses don\'t match.'], ['name' => 'nickname']);
+
+        RateLimiter::hit($key, 3600);
 
         $validated['password'] = Hash::make($validated['password']);
 
