@@ -5,13 +5,19 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable // implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
+
+    public const ROLE_USER = 'user';
+    public const ROLE_MODERATOR = 'moderator';
+    public const ROLE_ADMIN = 'admin';
 
     /**
      * The attributes that are mass assignable.
@@ -44,7 +50,40 @@ class User extends Authenticatable // implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_trusted' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the files the user uploaded.
+     */
+    public function uploads(): HasMany
+    {
+        return $this->hasMany(FileVersion::class);
+    }
+
+    /**
+     * Whether the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    /**
+     * Whether the user may review uploads and reports.
+     */
+    public function canModerate(): bool
+    {
+        return in_array($this->role, [self::ROLE_MODERATOR, self::ROLE_ADMIN], true);
+    }
+
+    /**
+     * Whether the user's uploads go live without review.
+     */
+    public function skipsReview(): bool
+    {
+        return $this->is_trusted || $this->canModerate();
     }
 
     /**

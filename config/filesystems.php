@@ -37,6 +37,12 @@ return [
             'throw' => false,
         ],
 
+        'meshes' => [
+            'driver' => 'local',
+            'root' => env('MQMESH_FILES_PATH', storage_path('app/meshes')),
+            'throw' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
