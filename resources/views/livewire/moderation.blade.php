@@ -135,7 +135,7 @@ new #[Title('Moderation')] class extends Component {
                                 @if ($site)
                                     @php $diff = $file->size - $site->size; @endphp
                                     <span @class(['text-emerald-600' => $diff > 0, 'text-amber-600' => $diff < 0])>
-                                        ({{ $diff >= 0 ? '+' : '−' }}{{ \Illuminate\Support\Number::fileSize(abs($diff), precision: 1) }} vs Site file v{{ $site->version }})
+                                        ({{ $diff >= 0 ? '+' : '−' }}{{ \App\Support\Bytes::format(abs($diff)) }} vs Site file v{{ $site->version }})
                                     </span>
                                 @else
                                     <span class="text-sky-600">(no Site file yet)</span>

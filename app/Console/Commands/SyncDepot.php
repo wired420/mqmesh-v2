@@ -23,7 +23,9 @@ class SyncDepot extends Command
         if (! $this->option('no-pull')) {
             $git = is_dir("{$path}/.git")
                 ? Process::path($path)->timeout(600)->run(['git', 'pull', '--ff-only', '--quiet'])
-                : Process::timeout(1800)->run(['git', 'clone', '--quiet', config('mqmesh.depot.url'), $path]);
+                // A blobless clone keeps the commit history (for file dates)
+                // without downloading every old version of every mesh.
+                : Process::timeout(1800)->run(['git', 'clone', '--quiet', '--filter=blob:none', config('mqmesh.depot.url'), $path]);
 
             if ($git->failed()) {
                 $this->error('git failed: '.trim($git->errorOutput()));

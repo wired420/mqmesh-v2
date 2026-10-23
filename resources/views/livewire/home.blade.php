@@ -3,7 +3,7 @@
 use App\Models\Expansion;
 use App\Models\FileVersion;
 use App\Models\Zone;
-use Illuminate\Support\Number;
+use App\Support\Bytes;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
@@ -43,7 +43,7 @@ new class extends Component {
             'zones' => Zone::whereHas('siteMesh')->count(),
             'doors' => (clone $site)->where('type', 'doors')->count(),
             'community' => FileVersion::where('status', FileVersion::STATUS_APPROVED)->where('is_official', false)->count(),
-            'size' => Number::fileSize((int) (clone $site)->sum('size'), precision: 1),
+            'size' => Bytes::format((int) (clone $site)->sum('size')),
         ];
     }
 

@@ -182,11 +182,11 @@ new #[Title('Upload')] class extends Component {
                         @if ($file)
                             <flux:icon name="document-check" class="mx-auto size-8 text-accent-content" />
                             <div class="font-medium text-zinc-900 dark:text-white">{{ $file->getClientOriginalName() }}</div>
-                            <div class="text-xs text-zinc-500">{{ \Illuminate\Support\Number::fileSize($file->getSize(), precision: 1) }} &middot; click or drop to replace</div>
+                            <div class="text-xs text-zinc-500">{{ \App\Support\Bytes::format($file->getSize()) }} &middot; click or drop to replace</div>
                         @else
                             <flux:icon name="arrow-up-tray" class="mx-auto size-8 text-zinc-400" />
                             <div class="font-medium text-zinc-900 dark:text-white">Drop a <span class="font-mono">.navmesh</span> or <span class="font-mono">_doors.json</span> file here</div>
-                            <div class="text-xs text-zinc-500">or click to choose one. Up to {{ \Illuminate\Support\Number::fileSize(config('mqmesh.max_upload_kb') * 1024) }}.</div>
+                            <div class="text-xs text-zinc-500">or click to choose one. Up to {{ \App\Support\Bytes::format(config('mqmesh.max_upload_kb') * 1024, 0) }}.</div>
                         @endif
                     </div>
                 </template>

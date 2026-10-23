@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Number;
+use App\Support\Bytes;
 
 class FileVersion extends Model
 {
@@ -150,7 +150,7 @@ class FileVersion extends Model
      */
     public function humanSize(): string
     {
-        return Number::fileSize($this->size, precision: 1);
+        return Bytes::format($this->size);
     }
 
     /**
