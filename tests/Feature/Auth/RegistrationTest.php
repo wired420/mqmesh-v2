@@ -22,6 +22,7 @@ class RegistrationTest extends TestCase
         $response = Volt::test('auth.register')
             ->set('name', 'Test User')
             ->set('email', 'test@example.com')
+            ->set('email_confirmation', 'test@example.com')
             ->set('password', 'password')
             ->set('password_confirmation', 'password')
             ->call('register');
@@ -31,5 +32,19 @@ class RegistrationTest extends TestCase
             ->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertAuthenticated();
+    }
+
+    public function test_the_two_email_addresses_must_match(): void
+    {
+        Volt::test('auth.register')
+            ->set('name', 'Test User')
+            ->set('email', 'test@example.com')
+            ->set('email_confirmation', 'test@exmaple.com')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->call('register')
+            ->assertHasErrors(['email' => 'confirmed']);
+
+        $this->assertGuest();
     }
 }

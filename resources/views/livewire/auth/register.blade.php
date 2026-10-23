@@ -11,6 +11,7 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.auth')] class extends Component {
     public string $name = '';
     public string $email = '';
+    public string $email_confirmation = '';
     public string $password = '';
     public string $password_confirmation = '';
 
@@ -21,9 +22,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'confirmed', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-        ], [], ['name' => 'nickname']);
+        ], ['email.confirmed' => 'The two email addresses don\'t match.'], ['name' => 'nickname']);
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -50,6 +51,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <!-- Email Address -->
         <div class="grid gap-2">
             <flux:input wire:model="email" id="email" label="{{ __('Email address') }}" type="email" name="email" required autocomplete="email" placeholder="email@example.com" />
+        </div>
+
+        <!-- Confirm Email Address (typed, not pasted, to catch typos) -->
+        <div class="grid gap-2">
+            <flux:input wire:model="email_confirmation" id="email_confirmation" label="{{ __('Confirm email address') }}" type="email" name="email_confirmation" required autocomplete="off" placeholder="Type it again" onpaste="return false" ondrop="return false" />
         </div>
 
         <!-- Password -->
