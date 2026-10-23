@@ -13,6 +13,11 @@ Route::prefix('v1')->name('api.')->group(function () {
     Route::get('files/{file}/download', [DownloadController::class, 'file'])->name('files.download');
     Route::get('zip', [DownloadController::class, 'zip'])->middleware('throttle:zips')->name('zip');
 
+    Route::get('updater', [CatalogueController::class, 'updater'])->name('updater');
+    Route::get('updater/{platform}/download', [DownloadController::class, 'latestUpdater'])
+        ->whereIn('platform', ['windows', 'linux'])
+        ->name('updater.download');
+
     Route::post('zones/{zone}/versions', [UploadController::class, 'store'])
         ->middleware(['auth:sanctum', 'verified', 'abilities:upload', 'throttle:uploads'])
         ->name('versions.store');

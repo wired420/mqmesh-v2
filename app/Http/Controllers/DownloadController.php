@@ -46,6 +46,18 @@ class DownloadController extends Controller
     }
 
     /**
+     * Download the newest updater build for a platform (windows or linux).
+     */
+    public function latestUpdater(string $platform): BinaryFileResponse
+    {
+        $release = UpdaterReleases::latest()->get($platform);
+
+        abort_unless($release, 404, 'No build for that platform yet.');
+
+        return $this->updater($release['file']);
+    }
+
+    /**
      * Serve a zone's Site file at the old site's path, such as
      * /resources/meshes/poknowledge.navmesh, so old links and updaters work.
      */

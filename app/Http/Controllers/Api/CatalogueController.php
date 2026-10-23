@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Expansion;
 use App\Models\FileVersion;
 use App\Models\Zone;
+use App\Support\UpdaterReleases;
 use App\Support\ZoneFilters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -86,6 +87,23 @@ class CatalogueController extends Controller
             'uploaded_by' => $file->user?->name,
             'notes' => $file->notes,
         ])->values();
+    }
+
+    /**
+     * The newest updater build per platform, for self-update checks.
+     */
+    public function updater(): JsonResponse
+    {
+        return response()->json([
+            'data' => UpdaterReleases::latest()->map(fn (array $release) => [
+                'version' => $release['version'],
+                'file_name' => $release['file'],
+                'size' => $release['size'],
+                'sha256' => $release['sha256'],
+                'released_at' => $release['date']->toIso8601String(),
+                'download_url' => route('api.updater.download', $release['platform']),
+            ]),
+        ]);
     }
 
     /**

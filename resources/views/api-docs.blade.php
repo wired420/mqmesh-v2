@@ -7,6 +7,9 @@
         ['GET', '/zones/{short_name}', 'One zone with its Site files and every approved community version.', 'Public'],
         ['GET', '/files/{id}/download', 'Download one file, named the way MQ2Nav expects.', 'Public'],
         ['GET', '/zip?zones=a,b,c', 'A zip of those zones\' Site meshes, built as it downloads. Add with=doors for doors files, or pass the /zones filters instead of zones=.', 'Public, 6 per minute'],
+        ['GET', '/updater', 'The newest MQMesh Updater build for each platform (windows, linux): version, file name, size, SHA-256 and download link. Handy for self-update checks.', 'Public'],
+        ['GET', '/updater/windows/download', 'Download the newest Windows build of the updater (zip).', 'Public'],
+        ['GET', '/updater/linux/download', 'Download the newest Linux build of the updater (tar.gz).', 'Public'],
         ['POST', '/zones/{short_name}/versions', 'Upload a community version. Multipart fields: type (mesh or doors), file, notes. Returns 201 with the new version, 409 if the same file already exists, 422 if it is not a valid file.', 'Token with upload'],
     ];
 @endphp

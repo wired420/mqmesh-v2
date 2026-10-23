@@ -37,6 +37,15 @@ class UpdaterPageTest extends TestCase
         $this->get('/updater/download/MQMeshUpdater-2.0.9-win-x64.zip')->assertNotFound();
         $this->get('/updater/download/notes.txt')->assertNotFound();
         $this->get('/updater/download/..%2F..%2F.env')->assertNotFound();
+
+        $this->getJson('/api/v1/updater')
+            ->assertOk()
+            ->assertJsonPath('data.windows.version', '2.1.0')
+            ->assertJsonPath('data.linux.sha256', hash('sha256', 'new linux'))
+            ->assertJsonPath('data.windows.download_url', url('/api/v1/updater/windows/download'));
+        $this->get('/api/v1/updater/windows/download')->assertOk()->assertDownload('MQMeshUpdater-2.1.0-win-x64.zip');
+        $this->get('/api/v1/updater/linux/download')->assertOk()->assertDownload('mqmesh-updater-2.1.0-linux-x64.tar.gz');
+        $this->get('/api/v1/updater/mac/download')->assertNotFound();
     }
 
     public function test_admins_publish_both_builds_together_and_nobody_else_can(): void
