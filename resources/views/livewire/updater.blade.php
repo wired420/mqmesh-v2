@@ -37,7 +37,8 @@ new #[Title('Updater')] class extends Component {
             No builds are up yet. Check back soon.
         </div>
     @else
-        <div class="grid gap-4 md:grid-cols-2">
+        {{-- Each card ends with a screenshot thumbnail that opens full size in a lightbox --}}
+        <div class="grid gap-4 md:grid-cols-2" x-data="{ shot: null, label: '' }" x-on:keydown.escape.window="shot = null">
             @foreach ($this->releases as $release)
                 <div wire:key="release-{{ $release['platform'] }}" class="flex flex-col rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
                     <div class="flex items-center gap-3">
@@ -68,57 +69,46 @@ new #[Title('Updater')] class extends Component {
                                 SHA-256 <span x-text="copied ? 'copied!' : '{{ $release['sha256'] }}'"></span>
                             </button>
                         </div>
+
+                        @if (! empty($release['screenshot']))
+                            <button
+                                type="button"
+                                x-on:click="shot = '{{ asset($release['screenshot']) }}'; label = '{{ $release['label'] }}'"
+                                class="group relative block w-full overflow-hidden rounded-lg border border-zinc-200 transition hover:border-accent dark:border-zinc-800"
+                                aria-label="View the {{ $release['label'] }} screenshot full size"
+                            >
+                                <img src="{{ asset($release['screenshot']) }}" width="1086" height="753" loading="lazy"
+                                    alt="The MQMesh Updater on {{ $release['label'] }}"
+                                    class="block h-auto w-full" />
+                                <span class="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
+                                    <flux:icon name="magnifying-glass-plus" class="size-7 text-white" />
+                                </span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             @endforeach
+
+            <template x-teleport="body">
+                <div
+                    x-show="shot"
+                    x-transition.opacity
+                    x-on:click="shot = null"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-label="label + ' screenshot'"
+                    style="display: none"
+                >
+                    <img :src="shot" :alt="'The MQMesh Updater on ' + label + ', full size'" x-on:click.stop
+                        class="max-h-[90vh] w-auto max-w-full rounded-lg shadow-2xl" />
+                    <button type="button" x-on:click="shot = null" class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close">
+                        <flux:icon name="x-mark" class="size-6" />
+                    </button>
+                </div>
+            </template>
         </div>
     @endif
-
-    {{-- Screenshot: a thumbnail that opens full size in a lightbox --}}
-    <figure
-        x-data="{ open: false }"
-        x-on:keydown.escape.window="open = false"
-        class="flex flex-col gap-4 sm:flex-row sm:items-center"
-    >
-        <button
-            type="button"
-            x-on:click="open = true"
-            class="group relative w-full shrink-0 overflow-hidden rounded-lg border border-zinc-200 shadow-sm transition hover:border-accent sm:w-72 dark:border-zinc-800"
-            aria-label="View the updater screenshot full size"
-        >
-            <img src="{{ asset('images/updater-windows.png') }}" width="1086" height="753" loading="lazy"
-                alt="The MQMesh Updater on Windows: zones grouped by expansion with search, status, size, a mesh choice per zone and a doors checkbox"
-                class="block h-auto w-full transition group-hover:scale-[1.02]" />
-            <span class="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
-                <flux:icon name="magnifying-glass-plus" class="size-8 text-white" />
-            </span>
-        </button>
-
-        <figcaption class="text-sm text-zinc-600 dark:text-zinc-400">
-            The Windows version. Zones are grouped by expansion, and you pick the Site mesh, a community version or "don't manage" for each one.
-            <button type="button" x-on:click="open = true" class="mt-1 block text-accent-content underline">View full size</button>
-        </figcaption>
-
-        <template x-teleport="body">
-            <div
-                x-show="open"
-                x-transition.opacity
-                x-on:click="open = false"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Updater screenshot"
-                style="display: none"
-            >
-                <img src="{{ asset('images/updater-windows.png') }}" width="1086" height="753" alt="The MQMesh Updater on Windows, full size"
-                    x-on:click.stop
-                    class="max-h-[90vh] w-auto max-w-full rounded-lg shadow-2xl" />
-                <button type="button" x-on:click="open = false" class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close">
-                    <flux:icon name="x-mark" class="size-6" />
-                </button>
-            </div>
-        </template>
-    </figure>
 
     <div class="space-y-3">
         <flux:heading size="lg" level="2">Run it on a schedule</flux:heading>

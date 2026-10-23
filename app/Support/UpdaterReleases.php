@@ -25,6 +25,7 @@ class UpdaterReleases
             'label' => 'Windows',
             'arch' => 'x64',
             'icon' => 'computer-desktop',
+            'screenshot' => 'images/updater-windows.png',
             'needs' => 'Windows 10 or 11 with the .NET 10 Desktop Runtime (Windows offers it if it\'s missing).',
             'steps' => [
                 'Unzip and put MQMeshUpdater.exe in your MacroQuest folder.',
@@ -38,6 +39,7 @@ class UpdaterReleases
             'label' => 'Linux',
             'arch' => 'x64',
             'icon' => 'command-line',
+            'screenshot' => 'images/updater-linux.png',
             'needs' => 'For MacroQuest under Wine or Proton on 64-bit Linux (X11 or XWayland). One self-contained file, no .NET needed.',
             'steps' => [
                 'Extract it and copy mqmesh-updater into your MacroQuest folder inside the Wine prefix.',
