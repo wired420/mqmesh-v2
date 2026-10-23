@@ -18,13 +18,23 @@ class CatalogueController extends Controller
      *
      * Send the ETag back as If-None-Match to get a 304 when nothing changed,
      * or pass ?since=2026-01-01T00:00:00Z for only the zones changed since then.
+     * Add ?include=community to list each zone's approved community versions too.
      */
     public function manifest(Request $request): JsonResponse
     {
-        $request->validate(['since' => ['nullable', 'date']]);
+        $request->validate(['since' => ['nullable', 'date'], 'include' => ['nullable', 'in:community']]);
+
+        $withCommunity = $request->query('include') === 'community';
 
         $latest = FileVersion::where('is_official', true)->max('updated_at');
-        $etag = '"'.md5($latest.'|'.FileVersion::where('is_official', true)->count().'|'.$request->query('since')).'"';
+        $tag = $latest.'|'.FileVersion::where('is_official', true)->count().'|'.$request->query('since');
+
+        if ($withCommunity) {
+            $community = $this->communityQuery(FileVersion::query());
+            $tag .= '|community|'.(clone $community)->max('updated_at').'|'.$community->count();
+        }
+
+        $etag = '"'.md5($tag).'"';
 
         if (trim((string) $request->header('If-None-Match')) === $etag) {
             return response()->json(null, 304)->setEtag(trim($etag, '"'));
@@ -32,6 +42,7 @@ class CatalogueController extends Controller
 
         $zones = Zone::query()
             ->with(['expansion', 'siteMesh', 'siteDoors'])
+            ->when($withCommunity, fn ($query) => $query->with(['communityVersions' => fn ($query) => $query->with('user')->latest()->latest('id')]))
             ->whereHas('siteMesh')
             ->when($request->query('since'), fn ($query, $since) => $query->where('updated_at', '>=', Carbon::parse($since)))
             ->orderBy('short_name')
@@ -40,8 +51,30 @@ class CatalogueController extends Controller
         return response()->json([
             'generated_at' => now()->toIso8601String(),
             'count' => $zones->count(),
-            'zones' => $zones->map(fn (Zone $zone) => $this->zoneSummary($zone)),
+            'zones' => $zones->map(fn (Zone $zone) => $withCommunity
+                ? [...$this->zoneSummary($zone), 'community' => $this->communitySummaries($zone->communityVersions)]
+                : $this->zoneSummary($zone)),
         ])->setEtag(trim($etag, '"'));
+    }
+
+    /**
+     * Approved community versions: the same rule as Zone::communityVersions.
+     */
+    private function communityQuery($query)
+    {
+        return $query->where('status', FileVersion::STATUS_APPROVED)->where('is_official', false);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    private function communitySummaries($files)
+    {
+        return $files->map(fn (FileVersion $file) => [
+            ...$this->fileSummary($file),
+            'uploaded_by' => $file->user?->name,
+            'notes' => $file->notes,
+        ])->values();
     }
 
     /**
@@ -83,15 +116,11 @@ class CatalogueController extends Controller
     {
         $zone->load(['expansion', 'siteMesh', 'siteDoors']);
 
-        $community = $zone->communityVersions()->with('user')->latest()->get();
+        $community = $zone->communityVersions()->with('user')->latest()->latest('id')->get();
 
         return response()->json([
             ...$this->zoneSummary($zone),
-            'community' => $community->map(fn (FileVersion $file) => [
-                ...$this->fileSummary($file),
-                'uploaded_by' => $file->user?->name,
-                'notes' => $file->notes,
-            ]),
+            'community' => $this->communitySummaries($community),
         ]);
     }
 

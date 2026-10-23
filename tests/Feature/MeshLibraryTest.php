@@ -150,6 +150,19 @@ class MeshLibraryTest extends TestCase
         $response = $this->getJson('/api/v1/manifest')->assertOk()->assertJsonPath('zones.0.short_name', 'poknowledge');
         $this->getJson('/api/v1/manifest', ['If-None-Match' => $response->headers->get('ETag')])->assertStatus(304);
 
+        // ?include=community adds approved community versions and changes the ETag;
+        // the plain manifest stays exactly as it was.
+        $community = app(FileLibrary::class)->store($zone, 'mesh', $this->meshFile('shared'), ['source' => 'upload', 'status' => 'approved', 'user' => User::factory()->create(['name' => 'Kaen'])]);
+        $this->getJson('/api/v1/manifest')->assertHeader('ETag', $response->headers->get('ETag'))->assertJsonMissingPath('zones.0.community');
+        $withCommunity = $this->getJson('/api/v1/manifest?include=community')
+            ->assertOk()
+            ->assertJsonPath('zones.0.community.0.id', $community->id)
+            ->assertJsonPath('zones.0.community.0.uploaded_by', 'Kaen');
+        $this->assertNotSame($response->headers->get('ETag'), $withCommunity->headers->get('ETag'));
+        $community->forceFill(['status' => 'rejected'])->save();
+        $this->getJson('/api/v1/manifest?include=community')->assertJsonCount(0, 'zones.0.community');
+        $this->getJson('/api/v1/manifest?include=everything')->assertUnprocessable();
+
         $this->postJson('/api/v1/zones/poknowledge/versions')->assertUnauthorized();
 
         Sanctum::actingAs(User::factory()->create(), ['read']);
@@ -161,7 +174,7 @@ class MeshLibraryTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('x.navmesh', file_get_contents($this->meshFile('api'))),
         ], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('status', 'pending');
 
-        $this->assertSame(2, $zone->versions()->count());
+        $this->assertSame(3, $zone->versions()->count());
     }
 
     public function test_moderators_are_emailed_about_pending_uploads(): void

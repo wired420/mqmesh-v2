@@ -1,7 +1,7 @@
 @php
     $base = url('/api/v1');
     $endpoints = [
-        ['GET', '/manifest', 'Every zone\'s Site files: names, sizes, MD5 and SHA-256 hashes and download links. Send the ETag back in If-None-Match and you get 304 Not Modified when nothing changed. Add ?since=2026-01-01T00:00:00Z for only the zones changed since then.', 'Public'],
+        ['GET', '/manifest', 'Every zone\'s Site files: names, sizes, MD5 and SHA-256 hashes and download links. Send the ETag back in If-None-Match and you get 304 Not Modified when nothing changed. Add ?since=2026-01-01T00:00:00Z for only the zones changed since then, and ?include=community to list each zone\'s approved community versions (with uploader and notes) as well.', 'Public'],
         ['GET', '/expansions', 'Expansion codes, names, release years and zone counts, in release order.', 'Public'],
         ['GET', '/zones', 'Zones with the same filters as the zone browser: q, exp[]=kunark, doors=1, community=1, updated=30d|90d|year, sort, dir, per_page (up to 500).', 'Public'],
         ['GET', '/zones/{short_name}', 'One zone with its Site files and every approved community version.', 'Public'],
