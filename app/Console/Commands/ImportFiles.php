@@ -4,8 +4,10 @@ namespace App\Console\Commands;
 
 use App\Models\Expansion;
 use App\Models\FileVersion;
+use App\Services\LegacyFeeds;
 use App\Services\SiteFileImporter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 
 class ImportFiles extends Command
 {
@@ -15,7 +17,7 @@ class ImportFiles extends Command
 
     protected $description = 'Import a folder of mesh or doors files as Site files (read only; the folder is never changed)';
 
-    public function handle(SiteFileImporter $importer): int
+    public function handle(SiteFileImporter $importer, LegacyFeeds $feeds): int
     {
         $type = $this->option('type');
 
@@ -32,7 +34,10 @@ class ImportFiles extends Command
             $type,
             FileVersion::SOURCE_SEED,
             report: fn (string $zone, string $what) => $this->line("  {$zone}: {$what}"),
+            dateOf: fn (string $file) => Carbon::createFromTimestamp(filemtime($file)),
         );
+
+        $feeds->write();
 
         $this->info(sprintf('%d added, %d updated, %d unchanged, %d failed.', ...array_values($counts)));
 

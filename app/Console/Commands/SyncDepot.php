@@ -4,8 +4,10 @@ namespace App\Console\Commands;
 
 use App\Models\Expansion;
 use App\Models\FileVersion;
+use App\Services\LegacyFeeds;
 use App\Services\SiteFileImporter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Process;
 
 class SyncDepot extends Command
@@ -14,7 +16,7 @@ class SyncDepot extends Command
 
     protected $description = 'Pull mqmesh-depot (read only) and make any changed meshes the new Site files';
 
-    public function handle(SiteFileImporter $importer): int
+    public function handle(SiteFileImporter $importer, LegacyFeeds $feeds): int
     {
         $path = config('mqmesh.depot.path');
 
@@ -40,7 +42,16 @@ class SyncDepot extends Command
             FileVersion::SOURCE_DEPOT,
             $commit,
             fn (string $zone, string $what) => $this->line("  {$zone}: {$what}"),
+            function (string $file) use ($path) {
+                $date = trim(Process::path($path)->run(['git', 'log', '-1', '--format=%cI', '--', basename($file)])->output());
+
+                return $date !== '' ? Carbon::parse($date) : null;
+            },
         );
+
+        if ($counts['added'] || $counts['updated'] || ! file_exists(public_path('zones.json'))) {
+            $feeds->write();
+        }
 
         $this->info(sprintf('Depot at %s: %d added, %d updated, %d unchanged, %d failed.', substr((string) $commit, 0, 7), ...array_values($counts)));
 

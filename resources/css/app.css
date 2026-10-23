@@ -10,6 +10,7 @@
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,16 +24,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-emerald-600);
+    --color-accent-content: var(--color-emerald-700);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-emerald-500);
+        --color-accent-content: var(--color-emerald-400);
+        --color-accent-foreground: var(--color-emerald-950);
     }
 }
 
@@ -61,6 +62,12 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/* The faint mesh behind the home page hero */
+.mesh-backdrop {
+    background-image:
+        linear-gradient(60deg, transparent 49.5%, color-mix(in oklab, var(--color-accent) 18%, transparent) 50%, transparent 50.5%),
+        linear-gradient(-60deg, transparent 49.5%, color-mix(in oklab, var(--color-accent) 18%, transparent) 50%, transparent 50.5%),
+        linear-gradient(0deg, transparent 49.5%, color-mix(in oklab, var(--color-accent) 12%, transparent) 50%, transparent 50.5%);
+    background-size: 56px 97px;
+    mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%);
+}

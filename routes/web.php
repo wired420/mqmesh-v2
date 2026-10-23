@@ -1,22 +1,36 @@
 <?php
 
+use App\Http\Controllers\DownloadController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Volt::route('/', 'home')->name('home');
+Volt::route('zones', 'zones.index')->name('zones.index');
+Volt::route('zones/{zone}', 'zones.show')->name('zones.show');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('files/{file}/download', [DownloadController::class, 'file'])->name('files.download');
+Route::get('download/zip', [DownloadController::class, 'zip'])->middleware('throttle:zips')->name('downloads.zip');
+
+// The old site's file paths, still used by the existing updaters' feeds.
+Route::get('resources/meshes/{name}.navmesh', [DownloadController::class, 'legacy'])->defaults('type', 'mesh')->where('name', '[A-Za-z0-9_-]+');
+Route::get('resources/doors/{name}_doors.json', [DownloadController::class, 'legacy'])->defaults('type', 'doors')->where('name', '[A-Za-z0-9_-]+');
+
+Route::view('about', 'about')->name('about');
+Route::view('api-docs', 'api-docs')->name('api.docs');
 
 Route::middleware(['auth'])->group(function () {
+    Volt::route('upload', 'uploads.create')->name('uploads.create');
+    Volt::route('my/uploads', 'uploads.mine')->name('dashboard');
+
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Volt::route('settings/tokens', 'settings.tokens')->name('settings.tokens');
+
+    Volt::route('moderation', 'moderation')->middleware('can:moderate')->name('moderation');
+    Volt::route('admin/users', 'admin.users')->middleware('can:admin')->name('admin.users');
 });
 
 require __DIR__.'/auth.php';

@@ -23,9 +23,10 @@ class SiteFileImporter
      * so running this again only picks up changes.
      *
      * @param  Closure(string, string): void|null  $report  Called with the zone short name and what happened.
+     * @param  Closure(string): ?\DateTimeInterface|null  $dateOf  When a file last changed, given its path.
      * @return array{added: int, updated: int, unchanged: int, failed: int}
      */
-    public function importDirectory(string $directory, string $type, string $source, ?string $commit = null, ?Closure $report = null): array
+    public function importDirectory(string $directory, string $type, string $source, ?string $commit = null, ?Closure $report = null, ?Closure $dateOf = null): array
     {
         $counts = ['added' => 0, 'updated' => 0, 'unchanged' => 0, 'failed' => 0];
         $suffix = $type === 'doors' ? '_doors.json' : '.navmesh';
@@ -50,6 +51,7 @@ class SiteFileImporter
                     'original_name' => basename($path),
                     'depot_commit' => $commit,
                     'official' => true,
+                    'created_at' => $dateOf ? $dateOf($path) : null,
                 ]);
             } catch (\InvalidArgumentException $e) {
                 $counts['failed']++;

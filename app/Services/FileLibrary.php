@@ -57,7 +57,7 @@ class FileLibrary
     /**
      * Store a file as a new version of a zone's mesh or doors file.
      *
-     * @param  array{source: string, status?: string, user?: ?User, notes?: ?string, original_name?: ?string, depot_commit?: ?string, official?: bool}  $attributes
+     * @param  array{source: string, status?: string, user?: ?User, notes?: ?string, original_name?: ?string, depot_commit?: ?string, official?: bool, created_at?: ?\DateTimeInterface}  $attributes
      */
     public function store(Zone $zone, string $type, string $path, array $attributes): FileVersion
     {
@@ -101,6 +101,10 @@ class FileLibrary
                 'depot_commit' => $attributes['depot_commit'] ?? null,
             ]);
 
+            if ($createdAt = $attributes['created_at'] ?? null) {
+                $file->forceFill(['created_at' => $createdAt])->save();
+            }
+
             if ($attributes['official'] ?? false) {
                 $this->makeSiteFile($file);
             }
@@ -128,8 +132,18 @@ class FileLibrary
                 'reviewed_at' => $by ? now() : $file->reviewed_at,
             ])->save();
 
-            $file->zone->touch();
+            // The zone counts as updated when its Site file changed (the depot
+            // commit date on import), or now when an admin swaps it by hand.
+            $zone = $file->zone;
+            $zone->timestamps = false;
+            $zone->forceFill(['updated_at' => $by ? now() : $file->created_at])->save();
         });
+
+        // Imports rebuild the old updaters' feeds once at the end; a swap made
+        // on the website rebuilds them straight away.
+        if ($by) {
+            app(LegacyFeeds::class)->write();
+        }
     }
 
     /**
