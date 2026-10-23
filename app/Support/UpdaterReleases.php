@@ -20,6 +20,8 @@ class UpdaterReleases
     public const PLATFORMS = [
         'windows' => [
             'pattern' => '/^MQMeshUpdater-(\d+\.\d+\.\d+)-win-x64\.zip$/',
+            'magic' => "PK\x03\x04",
+            'example' => 'MQMeshUpdater-2.1.0-win-x64.zip',
             'label' => 'Windows',
             'arch' => 'x64',
             'icon' => 'computer-desktop',
@@ -31,6 +33,8 @@ class UpdaterReleases
         ],
         'linux' => [
             'pattern' => '/^mqmesh-updater-(\d+\.\d+\.\d+)-linux-x64\.tar\.gz$/',
+            'magic' => "\x1f\x8b",
+            'example' => 'mqmesh-updater-2.1.0-linux-x64.tar.gz',
             'label' => 'Linux',
             'arch' => 'x64',
             'icon' => 'command-line',
@@ -65,6 +69,31 @@ class UpdaterReleases
 
             return $best ? [...$platform, ...$best, ...self::details($best['file']), 'platform' => $key] : null;
         })->filter();
+    }
+
+    /**
+     * Check an uploaded build: its name must follow the platform's pattern and
+     * its first bytes must match the archive type.
+     *
+     * @return array{version: ?string, error: ?string}
+     */
+    public static function inspect(string $platform, string $name, string $path): array
+    {
+        $spec = self::PLATFORMS[$platform];
+
+        if (! preg_match($spec['pattern'], $name, $m)) {
+            return ['version' => null, 'error' => "The file must be named like {$spec['example']}."];
+        }
+
+        $handle = fopen($path, 'rb');
+        $head = fread($handle, strlen($spec['magic']));
+        fclose($handle);
+
+        if ($head !== $spec['magic']) {
+            return ['version' => null, 'error' => 'This file is not a valid '.($platform === 'windows' ? 'zip' : 'tar.gz').' archive.'];
+        }
+
+        return ['version' => $m[1], 'error' => null];
     }
 
     /**

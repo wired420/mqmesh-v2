@@ -21,7 +21,7 @@ Route::post('hooks/gitlab', DepotWebhookController::class)
     ->middleware('throttle:30,1');
 
 Route::view('about', 'about')->name('about');
-Route::view('updater', 'updater')->name('updater');
+Volt::route('updater', 'updater')->name('updater');
 Route::get('updater/download/{file}', [DownloadController::class, 'updater'])
     ->where('file', '[A-Za-z0-9._-]+')
     ->name('updater.download');
