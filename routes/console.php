@@ -10,3 +10,9 @@ Schedule::command('mqmesh:sync-depot')
     ->withoutOverlapping(30)
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/depot-sync.log'));
+
+// Spam sign-ups never confirm their email, so clear those accounts out.
+Schedule::command('mqmesh:prune-unverified')
+    ->dailyAt('05:00')
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/prune-unverified.log'));

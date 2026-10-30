@@ -33,6 +33,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sign-ups
+    |--------------------------------------------------------------------------
+    |
+    | Bots script the sign-up form, and every sign-up emails the address given.
+    | The form needs one of these questions answered and takes at least
+    | min_seconds to fill in. Answers are lowercase.
+    |
+    */
+
+    'signup' => [
+        'min_seconds' => 3,
+        'questions' => [
+            ['question' => 'Which game are these meshes for?', 'answers' => ['everquest', 'ever quest', 'eq']],
+            ['question' => 'What is the name of the world EverQuest is set in?', 'answers' => ['norrath']],
+            ['question' => 'The Ruins of what was the first EverQuest expansion?', 'answers' => ['kunark']],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | File types
     |--------------------------------------------------------------------------
     |

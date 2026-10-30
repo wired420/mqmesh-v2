@@ -66,6 +66,28 @@ new #[Title('Users')] class extends Component {
         unset($this->users);
         Flux::toast(text: $user->is_trusted ? "{$user->name}'s uploads now skip review." : "{$user->name}'s uploads need review again.");
     }
+
+    public function deleteUser(int $id): void
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->is(Auth::user())) {
+            Flux::toast(variant: 'danger', text: "You can't delete your own account here.");
+
+            return;
+        }
+
+        if ($user->isAdmin()) {
+            Flux::toast(variant: 'danger', text: "Remove {$user->name}'s admin role first.");
+
+            return;
+        }
+
+        $user->delete();
+
+        unset($this->users);
+        Flux::toast(text: "{$user->name} was deleted.");
+    }
 }; ?>
 
 <div class="space-y-6">
@@ -86,6 +108,7 @@ new #[Title('Users')] class extends Component {
                     <th class="px-4 py-3 font-medium">Uploads</th>
                     <th class="px-4 py-3 font-medium">Trusted</th>
                     <th class="px-4 py-3 font-medium">Role</th>
+                    <th class="px-4 py-3 font-medium"><span class="sr-only">Delete</span></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -94,6 +117,9 @@ new #[Title('Users')] class extends Component {
                         <td class="px-4 py-3">
                             <div class="font-medium text-zinc-900 dark:text-white">{{ $user->name }}</div>
                             <div class="text-xs text-zinc-500">{{ $user->email }}</div>
+                            @unless ($user->hasVerifiedEmail())
+                                <flux:badge size="sm" color="amber" class="mt-1">Unverified</flux:badge>
+                            @endunless
                         </td>
                         <td class="px-4 py-3 text-zinc-500">{{ $user->created_at->format('M j, Y') }}</td>
                         <td class="px-4 py-3 tabular-nums">{{ $user->uploads_count }}</td>
@@ -106,6 +132,15 @@ new #[Title('Users')] class extends Component {
                                     <flux:select.option :value="$value" :selected="$user->role === $value">{{ $label }}</flux:select.option>
                                 @endforeach
                             </flux:select>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            @unless ($user->isAdmin())
+                                <flux:button size="sm" variant="danger" icon="trash"
+                                    wire:click="deleteUser({{ $user->id }})"
+                                    wire:confirm="Delete {{ $user->name }} ({{ $user->email }})? This can't be undone. Any uploads stay on the site.">
+                                    Delete
+                                </flux:button>
+                            @endunless
                         </td>
                     </tr>
                 @endforeach

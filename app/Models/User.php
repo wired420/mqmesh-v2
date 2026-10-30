@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
@@ -59,6 +60,17 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_trusted' => 'boolean',
         ];
+    }
+
+    /**
+     * Sign the user out everywhere when the account goes. Their uploads stay.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            $user->tokens()->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        });
     }
 
     /**

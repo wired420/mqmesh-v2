@@ -25,6 +25,7 @@ Laravel 12, Livewire (Volt) with Flux UI, Tailwind 4, MariaDB. Runs from `/var/w
 | `php artisan mqmesh:import-files <dir> --type=doors` | Import a folder of files as Site files (read only on the folder) |
 | `php artisan mqmesh:write-feeds` | Rebuild the three old-format JSON feeds |
 | `php artisan mqmesh:set-role <email> admin` | Make a user an admin or moderator |
+| `php artisan mqmesh:prune-unverified --dry-run` | List accounts that never confirmed their email within 7 days; without `--dry-run`, delete them (runs at 05:00 UTC) |
 
 Run the import and sync commands as `www-data` (`sudo -u www-data php artisan …`) so stored files belong to the web server.
 
