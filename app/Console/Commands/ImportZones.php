@@ -44,14 +44,22 @@ class ImportZones extends Command
                 $code = 'other';
             }
 
-            Zone::updateOrCreate(
-                ['short_name' => strtolower($shortName)],
-                ['eq_zone_id' => is_numeric($eqId) ? (int) $eqId : null, 'name' => $name, 'expansion_id' => $expansions[$code]],
-            );
+            $values = ['name' => $name, 'expansion_id' => $expansions[$code]];
+
+            // A blank id in the CSV keeps the zone's current id, so placeholder ids survive a re-import.
+            if (is_numeric($eqId) && (int) $eqId > 0) {
+                $values['eq_zone_id'] = (int) $eqId;
+            }
+
+            Zone::updateOrCreate(['short_name' => strtolower($shortName)], $values);
             $count++;
         }
 
         $this->info("Imported {$count} zones into ".count($expansions).' expansions.');
+
+        foreach (Zone::assignMissingIds() as $zoneName => $id) {
+            $this->line("Zone {$zoneName} has no id in the CSV, given placeholder id {$id}");
+        }
 
         return self::SUCCESS;
     }

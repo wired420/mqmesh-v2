@@ -89,6 +89,40 @@ class Zone extends Model
     }
 
     /**
+     * The first placeholder id for zones that have no EverQuest zone id.
+     */
+    public const FIRST_PLACEHOLDER_ID = 1111;
+
+    /**
+     * Give every zone with a blank or zero id the next free placeholder id,
+     * counting up from 1111 in short name order and skipping ids in use.
+     *
+     * @return array<string, int> The ids given, by short name
+     */
+    public static function assignMissingIds(): array
+    {
+        $used = array_flip(static::whereNotNull('eq_zone_id')->pluck('eq_zone_id')->all());
+        $next = self::FIRST_PLACEHOLDER_ID;
+        $assigned = [];
+
+        $missing = static::where(fn (Builder $query) => $query->whereNull('eq_zone_id')->orWhere('eq_zone_id', 0))
+            ->orderBy('short_name')
+            ->get();
+
+        foreach ($missing as $zone) {
+            while (isset($used[$next])) {
+                $next++;
+            }
+
+            $zone->update(['eq_zone_id' => $next]);
+            $used[$next] = true;
+            $assigned[$zone->short_name] = $next;
+        }
+
+        return $assigned;
+    }
+
+    /**
      * Use the short name in URLs.
      */
     public function getRouteKeyName(): string
