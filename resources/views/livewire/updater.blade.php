@@ -23,7 +23,7 @@ new #[Title('Updater')] class extends Component {
     }
 }; ?>
 
-<div class="mx-auto max-w-4xl space-y-10">
+<div class="mx-auto max-w-4xl space-y-10" x-data="{ shot: null, label: '' }" x-on:keydown.escape.window="shot = null">
     <div>
         <flux:heading size="xl" level="1">MQMesh Updater</flux:heading>
         <flux:subheading>
@@ -38,7 +38,7 @@ new #[Title('Updater')] class extends Component {
         </div>
     @else
         {{-- Each card ends with a screenshot thumbnail that opens full size in a lightbox --}}
-        <div class="grid gap-4 md:grid-cols-2" x-data="{ shot: null, label: '' }" x-on:keydown.escape.window="shot = null">
+        <div class="grid gap-4 md:grid-cols-2">
             @foreach ($this->releases as $release)
                 <div wire:key="release-{{ $release['platform'] }}" class="flex flex-col rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
                     <div class="flex items-center gap-3">
@@ -73,7 +73,7 @@ new #[Title('Updater')] class extends Component {
                         @if (! empty($release['screenshot']))
                             <button
                                 type="button"
-                                x-on:click="shot = '{{ asset($release['screenshot']) }}'; label = '{{ $release['label'] }}'"
+                                x-on:click="shot = '{{ asset($release['screenshot']) }}'; label = 'The MQMesh Updater on {{ $release['label'] }}'"
                                 class="group relative block w-full overflow-hidden rounded-lg border border-zinc-200 transition hover:border-accent dark:border-zinc-800"
                                 aria-label="View the {{ $release['label'] }} screenshot full size"
                             >
@@ -89,24 +89,6 @@ new #[Title('Updater')] class extends Component {
                 </div>
             @endforeach
 
-            <template x-teleport="body">
-                <div
-                    x-show="shot"
-                    x-transition.opacity
-                    x-on:click="shot = null"
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-                    role="dialog"
-                    aria-modal="true"
-                    :aria-label="label + ' screenshot'"
-                    style="display: none"
-                >
-                    <img :src="shot" :alt="'The MQMesh Updater on ' + label + ', full size'" x-on:click.stop
-                        class="max-h-[90vh] w-auto max-w-full rounded-lg shadow-2xl" />
-                    <button type="button" x-on:click="shot = null" class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close">
-                        <flux:icon name="x-mark" class="size-6" />
-                    </button>
-                </div>
-            </template>
         </div>
     @endif
 
@@ -123,6 +105,84 @@ new #[Title('Updater')] class extends Component {
         Source, release notes and bug reports:
         <a href="https://github.com/wired420/MQMeshUpdaterv2" class="text-accent-content underline" target="_blank" rel="noopener">github.com/wired420/MQMeshUpdaterv2</a>
     </p>
+
+    <flux:separator />
+
+    {{-- The in-game updater: the MQ2MeshManager MacroQuest plugin --}}
+    <div class="space-y-4">
+        <div>
+            <flux:heading size="lg" level="2">In-game updater</flux:heading>
+            <flux:subheading>
+                Rather stay in EverQuest? The MQ2MeshManager plugin does the same job from inside MacroQuest, with its own window and
+                <code class="font-mono text-xs">/mesh</code> commands.
+            </flux:subheading>
+        </div>
+
+        <div class="grid gap-5 rounded-xl border border-zinc-200 p-5 md:grid-cols-2 dark:border-zinc-800">
+            <div class="flex flex-col">
+                <div class="flex items-center gap-3">
+                    <div class="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-accent-content dark:bg-emerald-950/40">
+                        <flux:icon name="puzzle-piece" />
+                    </div>
+                    <div>
+                        <div class="font-semibold text-zinc-900 dark:text-white">MQ2MeshManager</div>
+                        <div class="text-xs text-zinc-500">MacroQuest plugin &middot; Windows</div>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    Picks the site mesh or a community version per zone, keeps doors files current, checks every download against its hash and backs up what it replaces.
+                </p>
+
+                <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
+                    <li><code class="font-mono text-xs">/plugin MQ2MeshManager</code></li>
+                    <li><code class="font-mono text-xs">/mesh agree</code> and follow the instructions on screen.</li>
+                    <li>Wait for &ldquo;Plugin activated!&rdquo; (up to 30 seconds).</li>
+                    <li><code class="font-mono text-xs">/mesh updatedb</code></li>
+                    <li><code class="font-mono text-xs">/mesh updateall</code>, or <code class="font-mono text-xs">/mesh ui</code> to pick meshes zone by zone.</li>
+                </ol>
+
+                <div class="mt-auto pt-5">
+                    <flux:button variant="primary" icon="code-bracket" class="w-full" href="https://github.com/wired420/MQ2MeshUpdaterv2" target="_blank" rel="noopener">
+                        Source on GitHub
+                    </flux:button>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                x-on:click="shot = '{{ asset('images/updater-ingame.png') }}'; label = 'MQ2MeshManager in game'"
+                class="group relative block self-start overflow-hidden rounded-lg border border-zinc-200 transition hover:border-accent dark:border-zinc-800"
+                aria-label="View the MQ2MeshManager screenshot full size"
+            >
+                <img src="{{ asset('images/updater-ingame.png') }}" width="1086" height="753" loading="lazy"
+                    alt="The MQ2MeshManager window in game"
+                    class="block h-auto w-full" />
+                <span class="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
+                    <flux:icon name="magnifying-glass-plus" class="size-7 text-white" />
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <template x-teleport="body">
+        <div
+            x-show="shot"
+            x-transition.opacity
+            x-on:click="shot = null"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            :aria-label="label + ' screenshot'"
+            style="display: none"
+        >
+            <img :src="shot" :alt="label + ', full size'" x-on:click.stop
+                class="max-h-[90vh] w-auto max-w-full rounded-lg shadow-2xl" />
+            <button type="button" x-on:click="shot = null" class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Close">
+                <flux:icon name="x-mark" class="size-6" />
+            </button>
+        </div>
+    </template>
 
     @can('admin')
         <livewire:updater-publish />

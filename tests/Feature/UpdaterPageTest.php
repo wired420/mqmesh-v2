@@ -31,7 +31,10 @@ class UpdaterPageTest extends TestCase
             ->assertSee('Download for Windows')
             ->assertSee('Download for Linux')
             ->assertSee(hash('sha256', 'new windows'))
-            ->assertDontSee('2.0.9');
+            ->assertDontSee('2.0.9')
+            ->assertSee('In-game updater')
+            ->assertSee('https://github.com/wired420/MQ2MeshUpdaterv2', false)
+            ->assertSee('images/updater-ingame.png', false);
 
         $this->get('/updater/download/MQMeshUpdater-2.1.0-win-x64.zip')->assertOk()->assertDownload('MQMeshUpdater-2.1.0-win-x64.zip');
         $this->get('/updater/download/MQMeshUpdater-2.0.9-win-x64.zip')->assertNotFound();
