@@ -131,6 +131,22 @@ class FileVersion extends Model
     }
 
     /**
+     * Link that opens this mesh in the in-browser generator (meshes only).
+     */
+    public function generatorUrl(): ?string
+    {
+        if ($this->type !== 'mesh') {
+            return null;
+        }
+
+        return route('generator', [
+            'zone' => $this->zone->short_name,
+            'mesh' => route('files.download', ['file' => $this, 'view' => 1], false),
+            'label' => "{$this->zone->short_name}.navmesh v{$this->version}",
+        ]);
+    }
+
+    /**
      * The file name MQ2Nav expects on disk.
      */
     public function downloadName(): string

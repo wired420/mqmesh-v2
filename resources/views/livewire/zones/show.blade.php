@@ -175,6 +175,11 @@ new class extends Component {
                                 <span class="font-mono text-xs text-zinc-500">{{ $old->md5 }}</span>
                                 <flux:spacer />
                                 <flux:button size="xs" variant="ghost" icon="arrow-down-tray" :href="route('files.download', $old)">Download</flux:button>
+                                @auth
+                                    @if ($old->generatorUrl())
+                                        <flux:button size="xs" variant="ghost" icon="cube" :href="$old->generatorUrl()" target="_blank">View Mesh</flux:button>
+                                    @endif
+                                @endauth
                             </div>
                         @endforeach
                     </div>

@@ -26,4 +26,11 @@ class GeneratorPageTest extends TestCase
 
         $this->assertFalse($response->headers->has('Cross-Origin-Embedder-Policy'));
     }
+
+    public function test_a_mesh_to_open_is_passed_through_to_the_app(): void
+    {
+        $this->get('/generator?zone=poknowledge&mesh='.urlencode('/files/7/download?view=1').'&label=v2&other=x')
+            ->assertOk()
+            ->assertSee('generator-app/index.html?zone=poknowledge&amp;mesh=%2Ffiles%2F7%2Fdownload%3Fview%3D1&amp;label=v2"', false);
+    }
 }
