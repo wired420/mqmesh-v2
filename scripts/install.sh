@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Unpack a package from scripts/package.sh (read from stdin) into /var/www/v2
-# and bring the site up to date. Never touches /var/www/html.
+# Unpack a package from scripts/package.sh (read from stdin) into the site
+# folder this script lives in, and bring the site up to date.
 set -euo pipefail
-cd /var/www/v2
+cd "$(dirname "$0")/.."
 
 php artisan down --retry=15 >/dev/null 2>&1 || true
 trap 'php artisan up >/dev/null' EXIT
