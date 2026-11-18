@@ -23,6 +23,10 @@
   button[hidden] { display: none; }
   #forget { color: var(--muted); font-size: 12px; margin-left: 8px; }
   #forget[hidden] { display: none; }
+  #view-note { color: var(--fg); background: #24324d; border-radius: 6px; padding: 8px 10px; }
+  #banner { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20;
+    background: var(--panel); color: var(--fg); border-radius: 6px; padding: 8px 14px; box-shadow: 0 2px 12px #0008; }
+  #banner[hidden], #view-note[hidden] { display: none; }
   .err { color: #ff8080 !important; }
 </style>
 </head>
@@ -36,6 +40,7 @@
     <p>MeshGenerator and MQ2Nav are by <a href="https://github.com/brainiac/MQ2Nav" target="_blank" rel="noopener" style="color:var(--accent)">brainiac</a>.
        This web version is maintained by MQMesh, <strong style="color:var(--fg)">not by brainiac</strong>, so please report problems with it to MQMesh.</p>
     <p>Works best in Chrome or Edge on a desktop computer. Chrome will ask to let the site view the folder's files; they stay on your computer.</p>
+    <p id="view-note" hidden></p>
     <div id="status">Loading…</div>
     <button id="saved" hidden>Use saved folder</button>
     <button id="pick" disabled>Choose EverQuest folder</button>
@@ -44,6 +49,7 @@
     <p id="remember-note" style="font-size:12px">Chrome and Edge remember the folder you pick, so next time it's one click.</p>
   </div>
 </div>
+<div id="banner" hidden></div>
 <script>
   var statusEl = document.getElementById('status');
   var overlay = document.getElementById('overlay');
@@ -60,6 +66,47 @@
     forgetLink.hidden = false;
     pickBtn.textContent = 'Choose a different folder';
     pickBtn.classList.add('secondary');
+  }
+
+  // Opened from the site to view an uploaded mesh: ?mesh=<same-origin url>&zone=<short name>&label=<text>
+  var params = new URLSearchParams(location.search);
+  var viewMesh = null;
+  (function () {
+    var mesh = params.get('mesh'), zone = (params.get('zone') || '').toLowerCase();
+    if (!mesh || !/^[a-z0-9_]+$/.test(zone)) return;
+    var url;
+    try { url = new URL(mesh, location.href); } catch (e) { return; }
+    if (url.origin !== location.origin) return;
+    viewMesh = { url: url.href, zone: zone, label: params.get('label') || (zone + '.navmesh') };
+    var note = document.getElementById('view-note');
+    note.textContent = 'Opening ' + viewMesh.label + '. Choose your EverQuest folder so the zone can be drawn under the mesh.';
+    note.hidden = false;
+  })();
+
+  function showBanner(text, isError) {
+    var b = document.getElementById('banner');
+    b.textContent = text;
+    b.className = isError ? 'err' : '';
+    b.hidden = !text;
+  }
+
+  function openViewMesh() {
+    if (!viewMesh) return;
+    var v = viewMesh;
+    viewMesh = null;
+    showBanner('Loading ' + v.label + '…');
+    fetch(v.url, { credentials: 'same-origin' }).then(function (r) {
+      if (!r.ok) throw new Error('the site answered ' + r.status);
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      var dir = Module.ccall('meshgen_web_output_path', 'string', [], []);
+      Module.FS.mkdirTree(dir);
+      Module.FS.writeFile(dir + '/' + v.zone + '.navmesh', new Uint8Array(buf));
+      Module.ccall('meshgen_web_open_zone', null, ['string', 'number'], [v.zone, 1]);
+      showBanner('');
+    }).catch(function (err) {
+      showBanner('Could not load ' + v.label + ': ' + err.message, true);
+    });
   }
 
   function setStatus(text, isError) {
@@ -94,6 +141,7 @@
     },
     onFolderPicked: function (folder, count) {
       overlay.classList.add('hidden');
+      openViewMesh();
       document.getElementById('canvas').focus();
     },
   };

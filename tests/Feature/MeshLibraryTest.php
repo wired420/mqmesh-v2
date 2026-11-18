@@ -227,4 +227,27 @@ class MeshLibraryTest extends TestCase
         $this->assertSame(1, $zip->numFiles);
         $this->assertSame('poknowledge.navmesh', $zip->getNameIndex(0));
     }
+
+    public function test_moderation_opens_meshes_in_the_generator_without_counting_a_download(): void
+    {
+        $zone = $this->zoneWithSiteMesh();
+        $uploader = User::factory()->create();
+        $upload = app(FileLibrary::class)->store($zone, 'mesh', $this->meshFile('pending'), ['source' => 'upload', 'user' => $uploader]);
+        \App\Models\Report::create(['file_version_id' => $zone->siteMesh->id, 'user_id' => $uploader->id, 'reason' => 'Falls through the bridge']);
+
+        $moderator = User::factory()->create();
+        $moderator->forceFill(['role' => 'moderator'])->save();
+
+        $url = $upload->generatorUrl();
+        $this->assertStringContainsString('zone=poknowledge', $url);
+        $this->assertStringContainsString(urlencode('/files/'.$upload->id.'/download?view=1'), $url);
+
+        Volt::actingAs($moderator)->test('moderation')->assertSee('Open in generator')
+            ->set('tab', 'reports')->assertSee('Open in generator')->assertSee('Falls through the bridge');
+
+        $this->actingAs($moderator)->get(route('files.download', ['file' => $upload, 'view' => 1]))->assertOk();
+        $this->assertSame(0, $upload->fresh()->download_count);
+        $this->actingAs($moderator)->get(route('files.download', $upload))->assertOk();
+        $this->assertSame(1, $upload->fresh()->download_count);
+    }
 }

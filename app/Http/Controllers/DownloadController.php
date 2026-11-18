@@ -27,7 +27,10 @@ class DownloadController extends Controller
         abort_unless($file->isVisibleTo($request->user()), 404);
 
         // Counting a download is not an edit, so leave updated_at alone.
-        FileVersion::whereKey($file->id)->toBase()->increment('download_count');
+        // Opening a mesh in the generator (?view=1) is not a download.
+        if (! $request->boolean('view')) {
+            FileVersion::whereKey($file->id)->toBase()->increment('download_count');
+        }
 
         return response()->download($this->library->absolutePath($file), $file->downloadName(), [
             'Content-Type' => $file->type === 'doors' ? 'application/json' : 'application/octet-stream',
