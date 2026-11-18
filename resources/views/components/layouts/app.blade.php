@@ -1,9 +1,10 @@
+@props(['title' => null, 'fullWidth' => false])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
     </head>
-    <body class="flex min-h-screen flex-col bg-white text-zinc-800 antialiased dark:bg-zinc-900 dark:text-zinc-200">
+    <body class="flex {{ $fullWidth ? 'h-dvh overflow-hidden' : 'min-h-screen' }} flex-col bg-white text-zinc-800 antialiased dark:bg-zinc-900 dark:text-zinc-200">
         @php
             $user = auth()->user();
             $queue = $user?->canModerate()
@@ -21,6 +22,8 @@
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="map" :href="route('zones.index')" :current="request()->routeIs('zones.*')" wire:navigate>Zones</flux:navbar.item>
                 <flux:navbar.item icon="arrow-up-tray" :href="route('uploads.create')" :current="request()->routeIs('uploads.create')" wire:navigate>Upload</flux:navbar.item>
+                {{-- No wire:navigate: the generator needs a full page load for its isolation headers. --}}
+                <flux:navbar.item icon="cube" :href="route('generator')" :current="request()->routeIs('generator')">Generator</flux:navbar.item>
                 <flux:navbar.item icon="arrow-path" :href="route('updater')" :current="request()->routeIs('updater')" wire:navigate>Updater</flux:navbar.item>
                 <flux:navbar.item icon="code-bracket" :href="route('api.docs')" :current="request()->routeIs('api.docs')" wire:navigate>API</flux:navbar.item>
                 <flux:navbar.item icon="information-circle" :href="route('about')" :current="request()->routeIs('about')" wire:navigate>About</flux:navbar.item>
@@ -105,16 +108,24 @@
                 <flux:navlist.item icon="home" :href="route('home')" :current="request()->routeIs('home')" wire:navigate>Home</flux:navlist.item>
                 <flux:navlist.item icon="map" :href="route('zones.index')" :current="request()->routeIs('zones.*')" wire:navigate>Zones</flux:navlist.item>
                 <flux:navlist.item icon="arrow-up-tray" :href="route('uploads.create')" wire:navigate>Upload</flux:navlist.item>
+                <flux:navlist.item icon="cube" :href="route('generator')">Generator</flux:navlist.item>
                 <flux:navlist.item icon="arrow-path" :href="route('updater')" wire:navigate>Updater</flux:navlist.item>
                 <flux:navlist.item icon="code-bracket" :href="route('api.docs')" wire:navigate>API</flux:navlist.item>
                 <flux:navlist.item icon="information-circle" :href="route('about')" wire:navigate>About</flux:navlist.item>
             </flux:navlist>
         </flux:sidebar>
 
+        @if ($fullWidth)
+            <main class="flex min-h-0 w-full flex-1 flex-col">
+                {{ $slot }}
+            </main>
+        @else
         <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
             {{ $slot }}
         </main>
+        @endif
 
+        @unless ($fullWidth)
         <footer class="border-t border-zinc-200 dark:border-zinc-800">
             <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                 <p class="max-w-2xl">
@@ -129,6 +140,7 @@
                 </div>
             </div>
         </footer>
+        @endunless
 
         @persist('toast')
             <flux:toast />
