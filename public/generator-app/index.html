@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQMesh Generator</title>
+<style>
+  :root { --bg: #1e1e22; --fg: #e8e8ea; --muted: #9a9aa2; --accent: #4f8cff; --panel: #2a2a30; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; overflow: hidden; }
+  #canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; }
+  #overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); z-index: 10; padding: 16px; box-sizing: border-box; }
+  #overlay.hidden { display: none; }
+  .card { max-width: 520px; background: var(--panel); border-radius: 10px; padding: 24px 28px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { margin: 8px 0; color: var(--muted); }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 9px 16px;
+    font-size: 14px; cursor: pointer; margin-top: 12px; }
+  button:disabled { opacity: .5; cursor: default; }
+  #status { margin-top: 12px; color: var(--fg); min-height: 1.5em; }
+  .err { color: #ff8080 !important; }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+<div id="overlay">
+  <div class="card">
+    <h1>MQMesh Generator</h1>
+    <p>Build and edit MQ2Nav meshes in your browser. Pick your EverQuest folder and the zone files are
+       read on your own computer. Nothing is uploaded.</p>
+    <p>MeshGenerator and MQ2Nav are by <a href="https://github.com/brainiac/MQ2Nav" target="_blank" rel="noopener" style="color:var(--accent)">brainiac</a>.
+       This web version is maintained by MQMesh, <strong style="color:var(--fg)">not by brainiac</strong>, so please report problems with it to MQMesh.</p>
+    <p>Works best in Chrome or Edge on a desktop computer. Chrome will ask to let the site view the folder's files; they stay on your computer.</p>
+    <div id="status">Loading…</div>
+    <button id="pick" disabled>Choose EverQuest folder</button>
+    <button id="skip" disabled style="background:#555">Skip for now</button>
+  </div>
+</div>
+<script>
+  var statusEl = document.getElementById('status');
+  var overlay = document.getElementById('overlay');
+  var pickBtn = document.getElementById('pick');
+  var skipBtn = document.getElementById('skip');
+
+  function setStatus(text, isError) {
+    statusEl.textContent = text;
+    statusEl.className = isError ? 'err' : '';
+  }
+
+  if (!window.crossOriginIsolated) {
+    setStatus('This page needs cross-origin isolation (COOP/COEP headers) to run threads. ' +
+      'Reload the page; if it keeps failing, the server is missing those headers.', true);
+  }
+
+  var Module = {
+    canvas: document.getElementById('canvas'),
+    print: function (t) { console.log(t); },
+    printErr: function (t) { console.warn(t); },
+    setStatus: function (t) { if (t) setStatus(t); },
+    onRuntimeInitialized: function () {
+      window.meshgenReady = true;
+      setStatus('Ready.');
+      pickBtn.disabled = false;
+      skipBtn.disabled = false;
+    },
+    onFolderPicked: function (folder, count) {
+      overlay.classList.add('hidden');
+      document.getElementById('canvas').focus();
+    },
+  };
+
+  pickBtn.addEventListener('click', function () {
+    Module.ccall('meshgen_web_pick_folder', null, [], []);
+  });
+  skipBtn.addEventListener('click', function () {
+    overlay.classList.add('hidden');
+    document.getElementById('canvas').focus();
+  });
+  window.addEventListener('error', function (e) { setStatus('Error: ' + e.message, true); });
+</script>
+<script src="coi-serviceworker.js"></script>
+<script async src="meshgen.js"></script>
+</body>
+</html>

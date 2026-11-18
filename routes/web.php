@@ -26,6 +26,8 @@ Route::get('updater/download/{file}', [DownloadController::class, 'updater'])
     ->where('file', '[A-Za-z0-9._-]+')
     ->name('updater.download');
 Route::view('api-docs', 'api-docs')->name('api.docs');
+// The mesh generator itself is a static WebAssembly app in public/generator-app.
+Route::view('generator', 'generator')->middleware(\App\Http\Middleware\CrossOriginIsolated::class)->name('generator');
 
 Route::middleware(['auth'])->group(function () {
     // Uploading (and API tokens, which can upload) needs a confirmed email.

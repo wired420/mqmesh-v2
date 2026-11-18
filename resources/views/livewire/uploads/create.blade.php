@@ -158,6 +158,12 @@ new #[Title('Upload')] class extends Component {
         </flux:subheading>
     </div>
 
+    <div id="generated-notice" hidden>
+        <flux:callout icon="cube" variant="secondary">
+            <flux:callout.text>This mesh came from the mesh generator. Check the zone, add a note about what you changed, then upload it.</flux:callout.text>
+        </flux:callout>
+    </div>
+
     <form wire:submit="save" class="space-y-6">
         {{-- File drop --}}
         <flux:field>
@@ -255,4 +261,41 @@ new #[Title('Upload')] class extends Component {
             <flux:button type="submit" variant="primary" icon="arrow-up-tray" wire:loading.attr="disabled" wire:target="file,save">Upload</flux:button>
         </div>
     </form>
+
+    @script
+    <script>
+        // A mesh published from the mesh generator (/generator) is handed over
+        // through IndexedDB, keyed by the "generated" query parameter.
+        const id = new URLSearchParams(window.location.search).get('generated');
+        if (id && window.indexedDB) {
+            const req = indexedDB.open('mqmesh-generator', 1);
+            req.onupgradeneeded = () => req.result.createObjectStore('publish');
+            req.onsuccess = () => {
+                const db = req.result;
+                const store = db.transaction('publish', 'readwrite').objectStore('publish');
+                const get = store.get(id);
+                get.onsuccess = () => {
+                    const item = get.result;
+                    // Drop this hand-over and any stale ones older than a day.
+                    store.openCursor().onsuccess = (e) => {
+                        const cursor = e.target.result;
+                        if (!cursor) return;
+                        if (cursor.key === id || Date.now() - (cursor.value.created || 0) > 86400000) cursor.delete();
+                        cursor.continue();
+                    };
+                    if (!item) return;
+
+                    const input = $wire.$el.querySelector('input[type=file]');
+                    const transfer = new DataTransfer();
+                    transfer.items.add(new File([item.blob], item.name, { type: 'application/octet-stream' }));
+                    input.files = transfer.files;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    if (!$wire.notes) $wire.notes = 'Built with the MQMesh mesh generator.';
+                    document.getElementById('generated-notice')?.removeAttribute('hidden');
+                };
+            };
+        }
+    </script>
+    @endscript
 </div>
