@@ -1,6 +1,6 @@
 # MQMesh v2
 
-The community site for MQ2Nav navigation meshes and door files: https://v2.mqmesh.com
+The community site for MQ2Nav navigation meshes and door files: https://mqmesh.com
 
 Laravel 12, Livewire (Volt) with Flux UI, Tailwind 4, MariaDB. Runs under Apache + PHP-FPM.
 
