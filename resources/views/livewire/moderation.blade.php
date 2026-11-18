@@ -151,7 +151,7 @@ new #[Title('Moderation')] class extends Component {
                         <div class="flex flex-wrap items-center gap-2">
                             <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('files.download', $file)">Download</flux:button>
                             @if ($file->generatorUrl())
-                                <flux:button size="sm" variant="ghost" icon="cube" :href="$file->generatorUrl()" target="_blank">Open in generator</flux:button>
+                                <flux:button size="sm" variant="ghost" icon="cube" :href="$file->generatorUrl()" target="_blank">View Mesh</flux:button>
                             @endif
                             <flux:button size="sm" variant="danger" wire:click="startReject({{ $file->id }})">Reject</flux:button>
                             @if (auth()->user()->isAdmin())
@@ -187,7 +187,7 @@ new #[Title('Moderation')] class extends Component {
                         <div class="flex flex-wrap items-center gap-2">
                             <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('files.download', $file)">Download</flux:button>
                             @if ($file->generatorUrl())
-                                <flux:button size="sm" variant="ghost" icon="cube" :href="$file->generatorUrl()" target="_blank">Open in generator</flux:button>
+                                <flux:button size="sm" variant="ghost" icon="cube" :href="$file->generatorUrl()" target="_blank">View Mesh</flux:button>
                             @endif
                             @unless ($file->is_official)
                                 <flux:button size="sm" variant="danger" wire:click="resolve({{ $report->id }}, true)" wire:confirm="Hide this file and close the report?">Hide file</flux:button>

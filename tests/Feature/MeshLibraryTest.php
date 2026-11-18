@@ -242,8 +242,14 @@ class MeshLibraryTest extends TestCase
         $this->assertStringContainsString('zone=poknowledge', $url);
         $this->assertStringContainsString(urlencode('/files/'.$upload->id.'/download?view=1'), $url);
 
-        Volt::actingAs($moderator)->test('moderation')->assertSee('Open in generator')
-            ->set('tab', 'reports')->assertSee('Open in generator')->assertSee('Falls through the bridge');
+        Volt::actingAs($moderator)->test('moderation')->assertSee('View Mesh')
+            ->set('tab', 'reports')->assertSee('View Mesh')->assertSee('Falls through the bridge');
+
+        // Zone pages: logged-in users get View Mesh next to Download, guests don't.
+        \Illuminate\Support\Facades\Auth::logout();
+        Volt::test('zones.show', ['zone' => $zone])->assertDontSee('View Mesh');
+        Volt::actingAs($uploader)->test('zones.show', ['zone' => $zone])
+            ->assertSee('View Mesh')->assertSee(e($zone->siteMesh->generatorUrl()), false);
 
         $this->actingAs($moderator)->get(route('files.download', ['file' => $upload, 'view' => 1]))->assertOk();
         $this->assertSame(0, $upload->fresh()->download_count);

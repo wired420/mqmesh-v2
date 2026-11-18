@@ -65,6 +65,11 @@
 
         <div class="flex shrink-0 items-center gap-1.5">
             <flux:button :variant="$file->is_official ? 'primary' : 'filled'" icon="arrow-down-tray" :href="route('files.download', $file)">Download</flux:button>
+            @auth
+                @if ($file->generatorUrl())
+                    <flux:button variant="ghost" icon="cube" :href="$file->generatorUrl()" target="_blank">View Mesh</flux:button>
+                @endif
+            @endauth
 
             @auth
                 <flux:dropdown align="end">
