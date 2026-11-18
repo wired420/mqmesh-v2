@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build a production package of the site at /tmp/mqmesh-v2.tgz.
-# Deploy it with:  cat /tmp/mqmesh-v2.tgz | ssh cjohnson@mqmesh.com 'bash /var/www/v2/scripts/install.sh'
+# Deploy it with:  cat /tmp/mqmesh-v2.tgz | ssh <user>@<server> 'bash <site folder>/scripts/install.sh'
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

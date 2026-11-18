@@ -2,7 +2,7 @@
 
 The community site for MQ2Nav navigation meshes and door files: https://v2.mqmesh.com
 
-Laravel 12, Livewire (Volt) with Flux UI, Tailwind 4, MariaDB. Runs from `/var/www/v2` on mqmesh.com under Apache + PHP-FPM 8.5.
+Laravel 12, Livewire (Volt) with Flux UI, Tailwind 4, MariaDB. Runs under Apache + PHP-FPM.
 
 ## How files work
 
@@ -20,7 +20,7 @@ Laravel 12, Livewire (Volt) with Flux UI, Tailwind 4, MariaDB. Runs from `/var/w
 
 | Command | What it does |
 | --- | --- |
-| `php artisan mqmesh:import-zones /var/www/html/zoneinfo.csv` | Create or update expansions and zones |
+| `php artisan mqmesh:import-zones <path to zoneinfo.csv>` | Create or update expansions and zones |
 | `php artisan mqmesh:sync-depot` | Pull the depot and import changed meshes (runs at 04:00 and 16:00 UTC) |
 | `php artisan mqmesh:import-files <dir> --type=doors` | Import a folder of files as Site files (read only on the folder) |
 | `php artisan mqmesh:write-feeds` | Rebuild the three old-format JSON feeds |
@@ -35,7 +35,7 @@ Build locally, then stream the package to the server:
 
 ```bash
 bash scripts/package.sh
-cat /tmp/mqmesh-v2.tgz | ssh cjohnson@mqmesh.com 'bash /var/www/v2/scripts/install.sh'
+cat /tmp/mqmesh-v2.tgz | ssh <user>@<server> 'bash <site folder>/scripts/install.sh'
 ```
 
 `install.sh` puts the site in maintenance mode, unpacks, migrates, rebuilds caches and the feeds, and brings it back up.
